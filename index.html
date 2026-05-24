@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NINJA — Invoice Generator</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/png" href="profile.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="logo">NINJA<span class="logo-dot">.</span></div>
+    <div class="header-meta">Invoice Generator <span class="version">v2.0</span></div>
+  </header>
+
+  <!-- MAIN APP -->
+  <main class="app-container">
+
+    <!-- LEFT: EDITOR PANEL -->
+    <section class="editor-panel" id="editorPanel">
+
+      <!-- FROM / TO -->
+      <div class="form-block">
+        <div class="block-label">FROM</div>
+        <input type="text" id="fromName" class="field field--lg" placeholder="Your Name / Company" />
+        <textarea id="fromAddress" class="field field--area" placeholder="Address, City, State ZIP&#10;Email • Phone"></textarea>
+      </div>
+
+      <div class="form-block">
+        <div class="block-label">BILL TO</div>
+        <input type="text" id="toName" class="field field--lg" placeholder="Client Name / Company" />
+        <textarea id="toAddress" class="field field--area" placeholder="Address, City, State ZIP&#10;Email • Phone"></textarea>
+      </div>
+
+      <!-- INVOICE META -->
+      <div class="form-block form-block--row">
+        <div class="field-group">
+          <label class="field-label">Invoice #</label>
+          <input type="text" id="invoiceNum" class="field" value="INV-0001" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Date</label>
+          <input type="date" id="invoiceDate" class="field" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Due Date</label>
+          <input type="date" id="dueDate" class="field" />
+        </div>
+      </div>
+
+      <!-- CURRENCY -->
+      <div class="form-block form-block--row">
+        <div class="field-group">
+          <label class="field-label">Currency</label>
+          <select id="currency" class="field field--select">
+            <option value="$">USD ($)</option>
+            <option value="€">EUR (€)</option>
+            <option value="£">GBP (£)</option>
+            <option value="¥">JPY (¥)</option>
+            <option value="₹">INR (₹)</option>
+            <option value="A$">AUD (A$)</option>
+            <option value="C$">CAD (C$)</option>
+            <option value="Rs">Npr (₹)</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Tax (%)</label>
+          <input type="number" id="taxRate" class="field" value="0" min="0" max="100" step="0.1" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Discount (%)</label>
+          <input type="number" id="discountRate" class="field" value="0" min="0" max="100" step="0.1" />
+        </div>
+      </div>
+
+      <!-- LINE ITEMS -->
+      <div class="form-block">
+        <div class="block-label">LINE ITEMS</div>
+        <div class="items-header">
+          <span class="col-desc">Description</span>
+          <span class="col-qty">Qty</span>
+          <span class="col-rate">Rate</span>
+          <span class="col-total">Total</span>
+          <span class="col-del"></span>
+        </div>
+        <div id="lineItems" class="line-items-list"></div>
+        <button class="btn-add-item" id="addItemBtn">
+          <span class="btn-add-icon">+</span> Add Line Item
+        </button>
+      </div>
+
+      <!-- NOTES -->
+      <div class="form-block">
+        <div class="block-label">NOTES</div>
+        <textarea id="notes" class="field field--area" placeholder="Payment terms, thank you note, bank details..."></textarea>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="action-row">
+        <button class="btn btn--outline" id="clearBtn">Clear All</button>
+        <button class="btn btn--primary" id="printBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print / Download PDF
+        </button>
+      </div>
+
+    </section>
+
+    <!-- RIGHT: LIVE PREVIEW -->
+    <section class="preview-panel" id="previewPanel">
+      <div class="preview-label">LIVE PREVIEW</div>
+      <div class="invoice-paper" id="invoicePaper">
+
+        <!-- INVOICE HEADER -->
+        <div class="inv-header">
+          <div class="inv-brand">
+            <div class="inv-from-name" id="prevFromName">Your Company</div>
+            <div class="inv-from-addr" id="prevFromAddr"></div>
+          </div>
+          <div class="inv-title-block">
+            <div class="inv-title">INVOICE</div>
+            <div class="inv-meta">
+              <div class="inv-meta-row"><span>No.</span><span id="prevNum">INV-0001</span></div>
+              <div class="inv-meta-row"><span>Date</span><span id="prevDate">—</span></div>
+              <div class="inv-meta-row"><span>Due</span><span id="prevDue">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="inv-divider"></div>
+
+        <!-- BILL TO -->
+        <div class="inv-billed">
+          <div class="inv-billed-label">BILLED TO</div>
+          <div class="inv-to-name" id="prevToName">Client Name</div>
+          <div class="inv-to-addr" id="prevToAddr"></div>
+        </div>
+
+        <!-- ITEMS TABLE -->
+        <table class="inv-table" id="prevTable">
+          <thead>
+            <tr>
+              <th class="col-w-desc">Description</th>
+              <th class="col-w-num">Qty</th>
+              <th class="col-w-num">Rate</th>
+              <th class="col-w-num">Amount</th>
+            </tr>
+          </thead>
+          <tbody id="prevTableBody"></tbody>
+        </table>
+
+        <!-- TOTALS -->
+        <div class="inv-totals">
+          <div class="inv-totals-col">
+            <div id="prevNotes" class="inv-notes"></div>
+          </div>
+          <div class="inv-totals-numbers">
+            <div class="inv-total-row"><span>Subtotal</span><span id="prevSubtotal">$0.00</span></div>
+            <div class="inv-total-row" id="discountRow" style="display:none"><span>Discount</span><span id="prevDiscount">— $0.00</span></div>
+            <div class="inv-total-row" id="taxRow" style="display:none"><span>Tax</span><span id="prevTax">$0.00</span></div>
+            <div class="inv-total-row inv-total-row--grand"><span>TOTAL</span><span id="prevTotal">$0.00</span></div>
+          </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="inv-footer">
+          <span>Generated with NINJA</span>
+        </div>
+
+      </div><!-- /invoice-paper -->
+    </section>
+
+  </main>
+
+  <!-- PRINT-ONLY CLONE TARGET -->
+  <div id="printTarget" class="print-only"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
